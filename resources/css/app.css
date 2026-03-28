@@ -46,4 +46,23 @@
         height: 1px;
         background-color: #E8E4DF;
     }
+
+    /* Fix for macOS select dropdown */
+    select {
+        -webkit-appearance: auto !important;
+        appearance: auto !important;
+        background-image: none !important;
+        padding-right: 0.75rem !important;
+        pointer-events: auto !important;
+    }
+
+    select::-ms-expand {
+        display: none;
+    }
+
+    select option {
+        background-color: white;
+        color: #1A1A1A;
+        padding: 0.5rem;
+    }
 }
