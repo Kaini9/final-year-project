@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/portfolio', [ProfileController::class, 'updatePortfolio'])->name('profile.portfolio.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/settings', [ProfileController::class, 'settings'])->name('profile.settings');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -43,6 +44,39 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Job Marketplace
     Route::resource('jobs', \App\Http\Controllers\JobController::class);
+
+    // Job Applications
+    Route::get('/jobs/{job}/apply', [\App\Http\Controllers\JobApplicationController::class, 'create'])->name('job_applications.create');
+    Route::post('/jobs/{job}/apply', [\App\Http\Controllers\JobApplicationController::class, 'store'])->name('job_applications.store');
+    Route::get('/my-applications', [\App\Http\Controllers\JobApplicationController::class, 'myApplications'])->name('job_applications.mine');
+    Route::patch('/applications/{jobApplication}', [\App\Http\Controllers\JobApplicationController::class, 'update'])->name('job_applications.update');
+    Route::delete('/applications/{jobApplication}', [\App\Http\Controllers\JobApplicationController::class, 'destroy'])->name('job_applications.destroy');
+
+    // Direct Messaging
+    Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
+    Route::post('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+
+    // Verification Request
+    Route::post('/verification/request', [\App\Http\Controllers\VerificationController::class, 'store'])->name('verification.store');
+
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+
+    // Admin Panel
+    Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+        Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('users');
+        Route::post('/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
+        Route::delete('/users/{user}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->name('users.destroy');
+        
+        // Verifications Management
+        Route::get('/verifications', [\App\Http\Controllers\AdminController::class, 'verifications'])->name('verifications');
+        Route::post('/verifications/{verification}/approve', [\App\Http\Controllers\AdminController::class, 'approveVerification'])->name('verifications.approve');
+        Route::post('/verifications/{verification}/reject', [\App\Http\Controllers\AdminController::class, 'rejectVerification'])->name('verifications.reject');
+    });
 });
 
 require __DIR__.'/auth.php';

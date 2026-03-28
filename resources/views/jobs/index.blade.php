@@ -5,9 +5,12 @@
             <!-- Mobile Header -->
             <div class="flex justify-between items-center sm:hidden mb-4">
                 <h1 class="font-display text-3xl uppercase tracking-widest text-ink">Marketplace</h1>
-                @role('Designer')
-                    <a href="{{ route('jobs.create') }}" class="px-4 py-2 bg-ink text-white text-xs font-semibold uppercase tracking-widest hover:bg-gray-800 transition-colors">Post Gig</a>
-                @endrole
+                <div class="flex gap-2">
+                    <a href="{{ route('job_applications.mine') }}" class="px-3 py-2 bg-white text-ink border border-gray-200 text-xs font-semibold uppercase tracking-widest hover:bg-gray-50 transition-colors">My Apps</a>
+                    @role('Designer')
+                        <a href="{{ route('jobs.create') }}" class="px-3 py-2 bg-ink text-white text-xs font-semibold uppercase tracking-widest hover:bg-gray-800 transition-colors">Post Gig</a>
+                    @endrole
+                </div>
             </div>
 
             <!-- Desktop Header -->
@@ -16,9 +19,12 @@
                     <h1 class="font-display text-4xl uppercase tracking-widest text-ink mb-2">Opportunities</h1>
                     <p class="text-sm text-gray-500 font-medium">Discover and apply to casting calls, collaborations, and paid gigs.</p>
                 </div>
-                @role('Designer')
-                    <a href="{{ route('jobs.create') }}" class="px-6 py-3 bg-ink text-white text-sm font-semibold uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm">Post Opportunity</a>
-                @endrole
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('job_applications.mine') }}" class="px-5 py-3 bg-white text-ink border border-gray-200 text-sm font-semibold uppercase tracking-widest hover:bg-gray-50 transition-colors shadow-sm">My Applied Gigs</a>
+                    @role('Designer')
+                        <a href="{{ route('jobs.create') }}" class="px-6 py-3 bg-ink text-white text-sm font-semibold uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm">Post Opportunity</a>
+                    @endrole
+                </div>
             </div>
 
             <!-- Verification Messages -->
