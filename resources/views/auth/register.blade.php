@@ -15,14 +15,23 @@
         </div>
 
         <!-- Role -->
-        <div class="mt-5">
+        <div class="mt-5" x-data="{ selectedRole: '{{ old('role_id', '') }}' }">
             <x-input-label for="role_id" :value="__('I am a...')" class="uppercase tracking-widest text-xs font-bold text-gray-500" />
-            <select id="role_id" name="role_id" class="border-gray-200 bg-gray-50/50 focus:bg-white focus:border-ink focus:ring-ink rounded-lg shadow-sm block mt-1 w-full text-ink transition-colors" required>
-                <option value="" disabled selected>Select your creative role</option>
+            <input type="hidden" id="role_id" name="role_id" :value="selectedRole" required>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
                 @foreach($roles as $role)
-                    <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+                    <button type="button" 
+                        @click="selectedRole = '{{ $role->id }}'; $el.focus()"
+                        :class="selectedRole === '{{ $role->id }}' ? 'bg-ink text-ivory border-ink' : 'bg-gray-50/50 text-ink border-gray-200 hover:border-ink'"
+                        class="relative p-4 border-2 rounded-lg transition-all duration-200 flex items-center justify-center font-medium text-sm text-center">
+                        {{ $role->name }}
+                        <svg x-show="selectedRole === '{{ $role->id }}'" class="absolute top-2 right-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
                 @endforeach
-            </select>
+            </div>
             <x-input-error :messages="$errors->get('role_id')" class="mt-2" />
         </div>
 
