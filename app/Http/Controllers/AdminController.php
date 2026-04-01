@@ -90,6 +90,7 @@ class AdminController extends Controller
             'status' => 'approved',
             'is_active' => true,
             'starts_at' => now(),
+            'expires_at' => now()->addMonth(),
         ]);
 
         $verification->user->notify(new GeneralNotification(

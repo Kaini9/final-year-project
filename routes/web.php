@@ -57,8 +57,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
 
-    // Verification Request
-    Route::post('/verification/request', [\App\Http\Controllers\VerificationController::class, 'store'])->name('verification.store');
+    // Verifications
+    Route::post('/verifications', [\App\Http\Controllers\VerificationController::class, 'store'])->name('verifications.store');
+    
+    // Khalti Integrated Payment
+    Route::get('/khalti/initiate/{verification}', [\App\Http\Controllers\KhaltiController::class, 'initiate'])->name('khalti.initiate');
+    Route::get('/khalti/callback', [\App\Http\Controllers\KhaltiController::class, 'callback'])->name('khalti.callback');
+    Route::get('/khalti/receipt/{verification}', [\App\Http\Controllers\KhaltiController::class, 'receipt'])->name('khalti.receipt');
+    Route::get('/khalti/receipt/{verification}/download', [\App\Http\Controllers\KhaltiController::class, 'downloadReceipt'])->name('khalti.receipt.download');
 
     // Notifications
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');

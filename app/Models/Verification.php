@@ -11,10 +11,12 @@ class Verification extends Model
 
     protected $fillable = [
         'user_id',
-        'is_active',
-        'status',
         'document_path',
         'social_link',
+        'status',
+        'payment_status',
+        'khalti_pidx',
+        'is_active',
         'starts_at',
         'expires_at',
         'suspended_at',

@@ -36,14 +36,17 @@ class VerificationController extends Controller
                 'document_path' => $documentPath ?: $existing->document_path,
             ]);
         } else {
-            Verification::create([
-                'user_id' => $user->id,
-                'status' => 'pending',
+            $verification = Verification::updateOrCreate(
+            ['user_id' => auth()->id()],
+            [
                 'social_link' => $request->social_link,
                 'document_path' => $documentPath,
-            ]);
-        }
+                'status' => 'pending',
+                'payment_status' => 'unpaid',
+            ]
+        );
 
-        return back()->with('verification_status', 'submitted');
+        // Redirect directly to the Khalti payment gateway
+        return redirect()->route('khalti.initiate', $verification);}
     }
 }

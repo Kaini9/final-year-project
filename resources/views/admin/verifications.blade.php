@@ -68,26 +68,41 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4">
-                                        <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full 
-                                            {{ $verification->status === 'approved' ? 'bg-emerald-100 text-emerald-800' : '' }}
-                                            {{ $verification->status === 'pending' ? 'bg-amber-100 text-amber-800' : '' }}
-                                            {{ $verification->status === 'rejected' ? 'bg-rose-100 text-rose-800' : '' }}
-                                        ">
-                                            {{ $verification->status }}
-                                        </span>
+                                        <div class="block">
+                                            <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full 
+                                                {{ $verification->status === 'approved' ? 'bg-emerald-100 text-emerald-800' : '' }}
+                                                {{ $verification->status === 'pending' ? 'bg-amber-100 text-amber-800' : '' }}
+                                                {{ $verification->status === 'rejected' ? 'bg-rose-100 text-rose-800' : '' }}
+                                            ">
+                                                App: {{ $verification->status }}
+                                            </span>
+                                            <br>
+                                            <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full mt-2 inline-block
+                                                {{ $verification->payment_status === 'paid' ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800' }}
+                                            ">
+                                                Fee: {{ $verification->payment_status }}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 text-xs whitespace-nowrap text-gray-500">
-                                        {{ $verification->created_at->diffForHumans() }}
+                                        {{ $verification->created_at->format('M j, Y') }}
+                                        @if($verification->expires_at)
+                                            <div class="text-[10px] font-bold text-gray-400 mt-1.5 uppercase tracking-widest" title="Valid until">EXP: {{ $verification->expires_at->format('M j, Y') }}</div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         @if($verification->status === 'pending')
                                             <div class="flex items-center justify-end gap-2">
-                                                <form action="{{ route('admin.verifications.approve', $verification) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-xs font-bold uppercase tracking-widest transition-colors">
-                                                        Approve
-                                                    </button>
-                                                </form>
+                                                @if($verification->payment_status === 'paid')
+                                                    <form action="{{ route('admin.verifications.approve', $verification) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-xs font-bold uppercase tracking-widest transition-colors">
+                                                            Approve
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <span class="text-[9px] text-amber-600 font-bold uppercase tracking-widest mr-2 bg-amber-50 px-2 py-1 rounded">Awaiting Payment</span>
+                                                @endif
                                                 <form action="{{ route('admin.verifications.reject', $verification) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to reject this verification request?');">
                                                     @csrf
                                                     <button type="submit" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-xs font-bold uppercase tracking-widest transition-colors">
