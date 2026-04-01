@@ -1,17 +1,17 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
+        <div class="flex justify-between items-center h-16 w-full">
+            <div class="flex items-center gap-2 lg:gap-8 shrink-0">
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center">
+                <div class="shrink-0 flex items-center pr-4 border-r border-gray-100">
                     <a href="{{ route('dashboard') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                <div class="hidden space-x-4 lg:space-x-8 sm:-my-px sm:flex shrink-0">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Feed') }}
                     </x-nav-link>
@@ -23,9 +23,19 @@
                     </x-nav-link>
                 </div>
             </div>
+            
+            <!-- Global Search -->
+            <div class="hidden md:flex items-center flex-1 max-w-sm px-4 lg:px-8">
+                <form action="{{ route('search') }}" method="GET" class="w-full relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-ink">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Search creators, opportunities, posts..." class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-none leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:border-ink sm:text-sm tracking-wide transition-colors" />
+                </form>
+            </div>
 
             <!-- Right Side: Notifications & Profile -->
-            <div class="hidden sm:flex sm:items-center sm:ml-6 gap-2">
+            <div class="hidden sm:flex flex-shrink-0 sm:items-center gap-2">
                 
                 <!-- Notification Bell Dropdown -->
                 <x-dropdown align="right" width="80">
@@ -140,6 +150,14 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <form action="{{ route('search') }}" method="GET" class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search everywhere..." class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-none leading-5 bg-white placeholder-gray-400 focus:outline-none focus:border-ink text-sm" />
+            </form>
+        </div>
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}

@@ -30,6 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Feed
     Route::get('/dashboard', [\App\Http\Controllers\FeedController::class, 'index'])->name('dashboard');
 
+    // Global Search
+    Route::get('/search', [\App\Http\Controllers\SearchController::class, 'index'])->name('search');
+
     // Profiles
     Route::get('/u/{user}', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/u/{user}/follow', [\App\Http\Controllers\FollowController::class, 'toggle'])->name('user.follow');

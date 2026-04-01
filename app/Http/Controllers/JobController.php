@@ -8,11 +8,25 @@ use Illuminate\Http\Request;
 
 class JobController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Marketplace specifically indexes active jobs universally
-        $jobs = Job::with('user.profile')->where('status', 'active')->latest()->paginate(15);
-        return view('jobs.index', compact('jobs'));
+        $query = Job::with('user.profile')->where('status', 'active');
+
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('role')) {
+            $query->where('role_required', $request->role);
+        }
+
+        $jobs = $query->latest()->paginate(15)->appends($request->query());
+        $roles = Role::whereNotIn('name', ['Admin'])->get();
+
+        return view('jobs.index', compact('jobs', 'roles'));
     }
 
     public function create()

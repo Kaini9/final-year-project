@@ -32,13 +32,20 @@ class JobApplicationController extends Controller
 
         $request->validate([
             'message' => 'required|string|max:2000',
+            'cv' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
         ]);
+
+        $cvPath = null;
+        if ($request->hasFile('cv')) {
+            $cvPath = $request->file('cv')->store('cvs', 'public');
+        }
 
         JobApplication::create([
             'job_id' => $job->id,
             'user_id' => $request->user()->id,
             'message' => $request->message,
             'status' => 'pending',
+            'cv_path' => $cvPath,
         ]);
 
         // Notify Designer of new application

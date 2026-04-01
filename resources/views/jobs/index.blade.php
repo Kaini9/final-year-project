@@ -34,17 +34,65 @@
                 </div>
             @endif
 
+            <!-- Search & Filter Bar -->
+            <div class="bg-white border p-4 shadow-sm mb-6 mt-4 md:mt-0">
+                <form action="{{ route('jobs.index') }}" method="GET" class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-grow relative border bg-gray-50 flex items-center">
+                        <div class="pl-4 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <label for="search" class="sr-only">Search Opportunities</label>
+                        <input id="search" name="search" type="text" class="block w-full text-sm border-0 focus:ring-0 bg-transparent text-ink placeholder-gray-400 py-3" placeholder="Search by keyword, brand, or title..." value="{{ request('search') }}" />
+                    </div>
+                    
+                    <div class="sm:w-64 shrink-0 relative border bg-gray-50">
+                        <label for="role" class="sr-only">Filter by Role</label>
+                        <select id="role" name="role" class="block w-full text-sm border-0 focus:ring-0 bg-transparent py-3 uppercase tracking-widest text-gray-700 font-bold px-4 appearance-none">
+                            <option value="">All Roles</option>
+                            @if(isset($roles))
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->name }}" {{ request('role') == $role->name ? 'selected' : '' }}>{{ $role->name }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="justify-center sm:w-auto w-full px-8 py-3 bg-ink text-white text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm">
+                        Search
+                    </button>
+                    @if(request('search') || request('role'))
+                        <a href="{{ route('jobs.index') }}" class="justify-center flex items-center sm:w-auto w-full px-6 py-3 bg-white border border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors shadow-sm">
+                            Clear
+                        </a>
+                    @endif
+                </form>
+            </div>
+
             <!-- Jobs Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
                 @forelse($jobs as $job)
-                    <div class="bg-white border text-ink p-6 hover:shadow-lg transition-shadow flex flex-col justify-between group cursor-pointer" onclick="window.location='{{ route('jobs.show', $job) }}'">
+                    <div class="bg-white border text-ink p-6 hover:shadow-lg transition-all flex flex-col justify-between group cursor-pointer" onclick="window.location='{{ route('jobs.show', $job) }}'">
                         <div>
                             <div class="flex justify-between items-start mb-4">
-                                <span class="px-3 py-1 bg-gray-100 text-xs font-bold uppercase tracking-wider text-gray-800 border">{{ $job->role_required }}</span>
+                                <span class="px-3 py-1 bg-ink text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">{{ $job->role_required }}</span>
                                 <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">{{ $job->created_at->diffForHumans() }}</span>
                             </div>
-                            <h2 class="font-bold text-xl mb-3 line-clamp-2 group-hover:underline"><a href="{{ route('jobs.show', $job) }}">{{ $job->title }}</a></h2>
-                            <p class="text-sm text-gray-600 mb-6 line-clamp-3 leading-relaxed">{{ $job->description }}</p>
+                            <h2 class="font-bold text-xl mb-3 line-clamp-2 group-hover:text-indigo-600 transition-colors"><a href="{{ route('jobs.show', $job) }}">{{ $job->title }}</a></h2>
+                            
+                            @if($job->budget)
+                                <div class="mb-4 inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-widest rounded border border-green-200">
+                                    Budget: Rs. {{ number_format($job->budget) }}
+                                </div>
+                            @elseif($job->budget === null)
+                                <div class="mb-4 inline-flex items-center px-2.5 py-1 bg-gray-50 text-gray-600 text-[10px] font-bold uppercase tracking-widest rounded border border-gray-200">
+                                    Unpaid / Collab
+                                </div>
+                            @endif
+
+                            <p class="text-sm text-gray-600 mb-6 line-clamp-2 leading-relaxed">{{ Str::limit(strip_tags(nl2br(e($job->description))), 150) }}</p>
                         </div>
                         <div class="mt-4 pt-4 border-t flex justify-between items-center">
                             <div class="flex items-center gap-3">
@@ -56,11 +104,16 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <span class="block text-xs font-bold leading-none">{{ $job->user->name }}</span>
-                                    <span class="block text-[10px] text-gray-500 uppercase tracking-widest mt-1">Designer</span>
+                                    <span class="block text-xs font-bold leading-none flex items-center gap-1">
+                                        {{ $job->user->name }}
+                                        @if($job->user->verification && $job->user->verification->status === 'approved')
+                                            <svg class="w-3 h-3 text-ink" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                        @endif
+                                    </span>
+                                    <span class="block text-[10px] text-gray-500 uppercase tracking-widest mt-1">Creator</span>
                                 </div>
                             </div>
-                            <a href="{{ route('jobs.show', $job) }}" class="text-xs font-bold text-ink hover:text-gray-500 uppercase tracking-wide transition-colors">View &rarr;</a>
+                            <a href="{{ route('jobs.show', $job) }}" class="text-[10px] font-bold text-ink hover:text-gray-500 uppercase tracking-widest transition-colors bg-gray-50 px-3 py-1.5 border rounded">View &rarr;</a>
                         </div>
                     </div>
                 @empty

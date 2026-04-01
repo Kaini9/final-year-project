@@ -25,7 +25,7 @@
                     </div>
                 </div>
 
-                <form action="{{ route('job_applications.store', $job) }}" method="POST" class="space-y-6">
+                <form action="{{ route('job_applications.store', $job) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
 
                     <div>
@@ -33,6 +33,14 @@
                         <textarea id="message" name="message" rows="8" class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:border-ink focus:ring-ink" required placeholder="Detail your experience, why you're perfect for the vision, and what you uniquely bring to the gig...">{{ old('message') }}</textarea>
                         <x-input-error :messages="$errors->get('message')" class="mt-2" />
                         <p class="text-xs text-gray-400 mt-2">Maximum 2,000 characters.</p>
+                    </div>
+
+                    <!-- CV Upload -->
+                    <div class="pt-2">
+                        <x-input-label for="cv" :value="__('Upload CV / Resume (Optional)')" class="uppercase tracking-widest text-xs font-bold mb-2 text-gray-700" />
+                        <input id="cv" name="cv" type="file" accept=".pdf,.doc,.docx" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-ink hover:file:bg-gray-200 uppercase tracking-widest transition-colors" />
+                        <x-input-error :messages="$errors->get('cv')" class="mt-2 text-xs" />
+                        <p class="text-[10px] text-gray-400 mt-2 tracking-widest uppercase">Max 5MB. PDF or Word Document.</p>
                     </div>
 
                     <div class="pt-8 flex justify-end">
