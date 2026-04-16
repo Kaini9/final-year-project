@@ -13,7 +13,12 @@ class Post extends Model
     protected $fillable = [
         'user_id',
         'image',
+        'images',
         'caption',
+    ];
+
+    protected $casts = [
+        'images' => 'array', // Cast to array for JSON storage
     ];
 
     public function user()

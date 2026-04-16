@@ -6,9 +6,18 @@
                     <h1 class="font-display text-4xl uppercase tracking-widest text-ink mb-1">Admin Dashboard</h1>
                     <p class="text-sm text-gray-500 font-medium">Platform overview and essential metrics.</p>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-4 flex-wrap">
                     <a href="{{ route('admin.users') }}" class="bg-white border text-ink uppercase tracking-widest text-xs font-bold px-6 py-3 rounded-none hover:bg-gray-50 transition-colors shadow-sm">
-                        Manage Users
+                        Users
+                    </a>
+                    <a href="{{ route('admin.roles') }}" class="bg-white border text-ink uppercase tracking-widest text-xs font-bold px-6 py-3 rounded-none hover:bg-gray-50 transition-colors shadow-sm">
+                        Roles
+                    </a>
+                    <a href="{{ route('admin.posts') }}" class="bg-white border text-ink uppercase tracking-widest text-xs font-bold px-6 py-3 rounded-none hover:bg-gray-50 transition-colors shadow-sm">
+                        Posts
+                    </a>
+                    <a href="{{ route('admin.jobs') }}" class="bg-white border text-ink uppercase tracking-widest text-xs font-bold px-6 py-3 rounded-none hover:bg-gray-50 transition-colors shadow-sm">
+                        Jobs
                     </a>
                 </div>
             </div>

@@ -12,7 +12,7 @@ class FeedController extends Controller
     {
         $posts = Post::with(['user.profile', 'user.role', 'likes', 'comments.user'])
                      ->latest()
-                     ->paginate(20);
+                     ->paginate(4);
 
         $myApplications = JobApplication::with(['job.user.profile'])
                             ->where('user_id', auth()->id())
