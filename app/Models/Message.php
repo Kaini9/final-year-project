@@ -14,10 +14,12 @@ class Message extends Model
         'receiver_id',
         'body',
         'read_at',
+        'is_spam',
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
+        'is_spam' => 'boolean',
     ];
 
     public function sender()

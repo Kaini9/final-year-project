@@ -18,6 +18,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role_id',
         'is_active',
+        'suspended_until',
+        'suspension_reason',
     ];
 
     protected $hidden = [
@@ -25,9 +27,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
+    protected $appends = [
+        'is_verified',
+    ];
+
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_active' => 'boolean',
+        'suspended_until' => 'datetime',
     ];
 
     public function role()
@@ -118,5 +125,19 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin(): bool
     {
         return $this->role && $this->role->name === 'Admin';
+    }
+
+    public function getIsVerifiedAttribute(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $this->verification && $this->verification->status === 'approved' && $this->verification->is_active;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspended_until && $this->suspended_until->isFuture();
     }
 }
