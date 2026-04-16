@@ -2,6 +2,13 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
+    @if (session('error'))
+        <div class="mb-6 p-4 text-sm text-rose-800 rounded-lg bg-rose-50 border border-rose-200" role="alert">
+            <span class="font-bold uppercase tracking-widest text-xs">Access Denied</span> 
+            <span class="ml-2">{{ session('error') }}</span>
+        </div>
+    @endif
+
     <div class="text-center mb-8">
         <h2 class="font-display text-3xl uppercase tracking-widest text-ink">Welcome Back</h2>
         <p class="text-sm text-gray-500 mt-2">Sign in to your creative workspace</p>

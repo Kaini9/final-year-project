@@ -29,7 +29,6 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Feed
     Route::get('/dashboard', [\App\Http\Controllers\FeedController::class, 'index'])->name('dashboard');
-    Route::get('/feed/load-more', [\App\Http\Controllers\FeedController::class, 'loadMore'])->name('feed.load-more');
 
     // Global Search
     Route::get('/search', [\App\Http\Controllers\SearchController::class, 'index'])->name('search');
@@ -40,6 +39,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Posts
     Route::post('/posts', [\App\Http\Controllers\PostController::class, 'store'])->name('posts.store');
+    Route::get('/posts/api/load', [\App\Http\Controllers\PostController::class, 'api'])->name('posts.api');
+    Route::get('/posts/{post}', [\App\Http\Controllers\PostController::class, 'show'])->name('posts.show');
     Route::delete('/posts/{post}', [\App\Http\Controllers\PostController::class, 'destroy'])->name('posts.destroy');
     
     // Interactions
@@ -84,6 +85,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('users');
         Route::post('/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
         Route::delete('/users/{user}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->name('users.destroy');
+        Route::post('/users/{user}/suspend', [\App\Http\Controllers\AdminController::class, 'suspendUser'])->name('users.suspend');
+        Route::post('/users/{user}/unsuspend', [\App\Http\Controllers\AdminController::class, 'unsuspendUser'])->name('users.unsuspend');
+        
+        Route::get('/posts', [\App\Http\Controllers\AdminController::class, 'posts'])->name('posts');
+        Route::delete('/posts/{post}', [\App\Http\Controllers\AdminController::class, 'destroyPost'])->name('posts.destroy');
+        
+        Route::get('/jobs', [\App\Http\Controllers\AdminController::class, 'jobs'])->name('jobs');
+        Route::delete('/jobs/{job}', [\App\Http\Controllers\AdminController::class, 'destroyJob'])->name('jobs.destroy');
+        
+        Route::get('/roles', [\App\Http\Controllers\AdminController::class, 'roles'])->name('roles');
+        Route::post('/roles', [\App\Http\Controllers\AdminController::class, 'storeRole'])->name('roles.store');
+        Route::patch('/roles/{role}', [\App\Http\Controllers\AdminController::class, 'updateRole'])->name('roles.update');
         
         // Verifications Management
         Route::get('/verifications', [\App\Http\Controllers\AdminController::class, 'verifications'])->name('verifications');

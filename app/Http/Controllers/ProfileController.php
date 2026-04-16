@@ -21,14 +21,8 @@ class ProfileController extends Controller
     {
         $user->load(['profile', 'role']);
         
-        $posts = collect();
-        $jobs = collect();
-        
-        if ($user->hasRole('Designer')) {
-            $jobs = $user->jobs()->latest()->get();
-        } else {
-            $posts = $user->posts()->latest()->get();
-        }
+        $jobs = $user->jobs()->latest()->get();
+        $posts = $user->posts()->latest()->get();
 
         $isFollowing = \Illuminate\Support\Facades\Auth::user()->following()->where('users.id', $user->id)->exists();
 

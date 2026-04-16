@@ -164,13 +164,78 @@
                                                 View
                                             </a>
                                             @if(auth()->id() !== $user->id)
-                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-xs font-bold uppercase tracking-widest text-rose-600 hover:text-rose-900 transition-colors">
+                                                <div x-data="{ suspendOpen: false, deleteOpen: false }" class="flex items-center gap-3">
+                                                    @if($user->isSuspended())
+                                                        <form action="{{ route('admin.users.unsuspend', $user) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" class="text-xs font-bold uppercase tracking-widest text-emerald-600 hover:text-emerald-900 transition-colors">
+                                                                Unsuspend
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <button @click="suspendOpen = true" class="text-xs font-bold uppercase tracking-widest text-amber-600 hover:text-amber-900 transition-colors">
+                                                            Suspend
+                                                        </button>
+                                                    @endif
+                                                    <button @click="deleteOpen = true" class="text-xs font-bold uppercase tracking-widest text-rose-600 hover:text-rose-900 transition-colors">
                                                         Delete
                                                     </button>
-                                                </form>
+
+                                                    <!-- Suspend Modal -->
+                                                    <div x-show="suspendOpen" x-cloak class="fixed text-left inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+                                                        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                                            <div x-show="suspendOpen" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="suspendOpen = false" aria-hidden="true"></div>
+                                                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                                                            <div x-show="suspendOpen" class="relative inline-block align-bottom bg-white border border-gray-200 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                                                                <form action="{{ route('admin.users.suspend', $user) }}" method="POST">
+                                                                    @csrf
+                                                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                                                        <h3 class="text-2xl font-display uppercase tracking-widest text-ink mb-1">Suspend User</h3>
+                                                                        <div class="mt-4 space-y-4">
+                                                                            <div>
+                                                                                <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-1">Reason</label>
+                                                                                <textarea name="reason" required class="block w-full border-gray-300 focus:border-ink focus:ring-ink sm:text-sm bg-gray-50 px-4 py-3"></textarea>
+                                                                            </div>
+                                                                            <div>
+                                                                                <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-1">Duration (Days)</label>
+                                                                                <input type="number" name="days" min="1" max="365" required class="block w-full border-gray-300 focus:border-ink focus:ring-ink sm:text-sm bg-gray-50 px-4 py-3" value="7">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="bg-gray-50 px-4 py-4 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
+                                                                        <button type="submit" class="w-full inline-flex justify-center border border-transparent px-6 py-3 bg-amber-600 text-xs font-bold uppercase tracking-widest text-white hover:bg-amber-700 focus:outline-none sm:ml-3 sm:w-auto transition-colors shadow-sm">Suspend</button>
+                                                                        <button type="button" @click="suspendOpen = false" class="mt-3 w-full inline-flex justify-center border border-gray-300 px-6 py-3 bg-white text-xs font-bold uppercase tracking-widest text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition-colors shadow-sm">Cancel</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Delete Modal -->
+                                                    <div x-show="deleteOpen" x-cloak class="fixed text-left inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+                                                        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                                            <div x-show="deleteOpen" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="deleteOpen = false" aria-hidden="true"></div>
+                                                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                                                            <div x-show="deleteOpen" class="relative inline-block align-bottom bg-white border border-gray-200 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST">
+                                                                    @csrf @method('DELETE')
+                                                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                                                        <h3 class="text-2xl font-display uppercase tracking-widest text-rose-600 mb-1">Delete User</h3>
+                                                                        <p class="text-sm text-gray-500 mb-4">This action cannot be undone. All data will be permanently removed.</p>
+                                                                        <div>
+                                                                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-1">Reason</label>
+                                                                            <textarea name="reason" required class="block w-full border-gray-300 focus:border-ink focus:ring-ink sm:text-sm bg-gray-50 px-4 py-3"></textarea>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="bg-gray-50 px-4 py-4 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
+                                                                        <button type="submit" class="w-full inline-flex justify-center border border-transparent px-6 py-3 bg-rose-600 text-xs font-bold uppercase tracking-widest text-white hover:bg-rose-700 focus:outline-none sm:ml-3 sm:w-auto transition-colors shadow-sm">Delete</button>
+                                                                        <button type="button" @click="deleteOpen = false" class="mt-3 w-full inline-flex justify-center border border-gray-300 px-6 py-3 bg-white text-xs font-bold uppercase tracking-widest text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition-colors shadow-sm">Cancel</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             @endif
                                         </div>
                                     </td>

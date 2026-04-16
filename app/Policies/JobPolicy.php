@@ -13,7 +13,7 @@ class JobPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('Designer') || $user->isAdmin();
+        return $user->isAdmin() || ($user->role && $user->role->can_post_jobs);
     }
 
     /**
