@@ -12,7 +12,7 @@ class VerificationController extends Controller
     {
         $request->validate([
             'social_link' => 'required|url|max:1000',
-            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'document' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $user = Auth::user();

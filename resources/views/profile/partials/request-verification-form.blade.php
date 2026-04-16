@@ -83,12 +83,42 @@
                 <p class="text-[10px] text-gray-500 mt-1">Link to your professional portfolio, agency roster, or established social media presence.</p>
             </div>
 
-            <!-- Identity Document Upload -->
-            <div>
-                <x-input-label for="document" :value="__('Proof of Identity (Optional)')" class="uppercase tracking-widest text-[10px] font-bold" />
-                <input id="document" name="document" type="file" accept=".pdf,.jpg,.jpeg,.png" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-ink hover:file:bg-gray-200" />
-                <x-input-error :messages="$errors->get('document')" class="mt-2 text-xs" />
-                <p class="text-[10px] text-gray-500 mt-1">Upload a government ID or official agency comp card (Max 2MB. PDF, JPG, PNG).</p>
+            <!-- Passport Photo Upload with Preview -->
+            <div x-data="{ photoPreview: null }">
+                <x-input-label for="document" :value="__('Passport Size Photo')" class="uppercase tracking-widest text-[10px] font-bold" />
+                
+                <div class="mt-2 flex items-center gap-6">
+                    <!-- Photo Preview Frame -->
+                    <div class="w-24 h-32 shrink-0 bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative">
+                        <!-- Placeholder -->
+                        <div x-show="!photoPreview" class="text-gray-400">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>
+                        <!-- Preview Image -->
+                        <span class="block w-full h-full bg-cover bg-no-repeat bg-center absolute inset-0" x-show="photoPreview" :style="'background-image: url(\'' + photoPreview + '\');'" style="display: none;"></span>
+                    </div>
+
+                    <!-- Input Button -->
+                    <div class="flex-grow">
+                        <input id="document" name="document" type="file" required accept=".img,.jpg,.jpeg,.png" class="hidden" 
+                            x-ref="photo"
+                            x-on:change="
+                                const file = $refs.photo.files[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onload = (e) => { photoPreview = e.target.result; };
+                                reader.readAsDataURL(file);
+                            "
+                        />
+                        
+                        <button type="button" x-on:click.prevent="$refs.photo.click()" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-bold uppercase tracking-widest shadow-sm rounded transition-colors">
+                            Select Photo
+                        </button>
+                        
+                        <p class="text-[10px] text-gray-500 mt-2">Clear, front-facing passport style photo. Max 2MB (JPG, PNG).</p>
+                        <x-input-error :messages="$errors->get('document')" class="mt-2 text-xs" />
+                    </div>
+                </div>
             </div>
 
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">

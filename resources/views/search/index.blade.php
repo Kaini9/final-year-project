@@ -59,7 +59,7 @@
                                         <div class="block">
                                             <h3 class="font-bold text-ink group-hover:text-indigo-600 transition-colors flex items-center gap-1">
                                                 {{ $user->name }}
-                                                @if($user->verification && $user->verification->status === 'approved')
+                                                @if($user->is_verified)
                                                     <x-verified-badge />
                                                 @endif
                                             </h3>

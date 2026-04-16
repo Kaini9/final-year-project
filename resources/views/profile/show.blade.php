@@ -19,7 +19,7 @@
                 <div class="flex-grow text-center md:text-left">
                     <div class="flex items-center justify-center md:justify-start mb-2 gap-3">
                         <h1 class="font-display text-5xl md:text-6xl uppercase tracking-wider">{{ $user->name }}</h1>
-                        @if($user->verification && $user->verification->status === 'approved')
+                        @if($user->is_verified)
                             <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md border-2 border-white" title="Verified Member">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                             </div>
@@ -88,30 +88,30 @@
                             <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Following</span>
                         </div>
                         <div class="text-center">
-                            @if($user->hasRole('Designer'))
+                            <span class="block font-display text-2xl text-ink">{{ $user->posts()->count() }}</span>
+                            <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Posts</span>
+                        </div>
+                        @if($user->hasRole('Designer') || ($user->role && $user->role->can_post_jobs) || $user->jobs()->count() > 0)
+                            <div class="text-center">
                                 <span class="block font-display text-2xl text-ink">{{ $user->jobs()->count() }}</span>
                                 <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Gigs</span>
-                            @else
-                                <span class="block font-display text-2xl text-ink">{{ $user->posts()->count() }}</span>
-                                <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Posts</span>
-                            @endif
-                        </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
 
-            <!-- Content Grid (Posts or Jobs) -->
-            <div>
-                <h2 class="font-display text-3xl uppercase tracking-widest mb-8 border-b pb-4">
-                    {{ $user->hasRole('Designer') ? 'ACTIVE OPPORTUNITIES' : 'PORTFOLIO' }}
-                </h2>
+            <!-- Content Grid for Jobs -->
+            @if($jobs->count() > 0 || $user->hasRole('Designer') || ($user->role && $user->role->can_post_jobs))
+                <div class="mb-12">
+                    <h2 class="font-display text-3xl uppercase tracking-widest mb-8 border-b pb-4">
+                        GIGS
+                    </h2>
 
-                @if($user->hasRole('Designer'))
-                    <!-- Jobs Grid -->
                     @if($jobs->count() > 0)
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($jobs as $job)
-                                <div class="bg-white p-6 border hover:shadow-md transition-shadow">
+                                <a href="{{ route('jobs.show', $job) }}" class="block bg-white p-6 border hover:shadow-md transition-shadow">
                                     <div class="text-xs text-gray-500 mb-2 uppercase tracking-wide">{{ $job->created_at->diffForHumans() }}</div>
                                     <h3 class="font-bold text-xl mb-2">{{ $job->title }}</h3>
                                     <p class="text-gray-600 text-sm mb-4 line-clamp-3">{{ $job->description }}</p>
@@ -119,30 +119,48 @@
                                         <span class="bg-gray-100 px-2 py-1">{{ $job->role_required }}</span>
                                         <span class="text-indigo-600 font-semibold cursor-pointer">View &rarr;</span>
                                     </div>
-                                </div>
+                                </a>
                             @endforeach
                         </div>
                     @else
-                        <p class="text-gray-500 italic">No active opportunities at the moment.</p>
+                        <p class="text-gray-500 italic">No gigs posted yet.</p>
                     @endif
-                @else
-                    <!-- Posts Grid -->
-                    @if($posts->count() > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            @foreach($posts as $post)
-                                <div class="aspect-square bg-gray-100 border relative group overflow-hidden">
-                                    @if($post->image)
-                                        <img src="{{ asset('storage/' . $post->image) }}" alt="Post image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                    @endif
-                                    <div class="absolute inset-0 bg-ink/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 text-white">
-                                        <p class="text-sm line-clamp-2">{{ $post->caption }}</p>
+                </div>
+            @endif
+
+            <!-- Content Grid for Posts -->
+            <div>
+                <h2 class="font-display text-3xl uppercase tracking-widest mb-8 border-b pb-4">
+                    PORTFOLIO / POSTS
+                </h2>
+
+                @if($posts->count() > 0)
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        @foreach($posts as $post)
+                            @php
+                                $firstImage = null;
+                                if (!empty($post->images) && is_array($post->images) && count($post->images) > 0) {
+                                    $firstImage = $post->images[0];
+                                } elseif (!empty($post->image)) {
+                                    $firstImage = $post->image;
+                                }
+                            @endphp
+                            <a href="{{ route('posts.show', $post) }}" class="block aspect-square bg-gray-100 border relative group overflow-hidden">
+                                @if($firstImage)
+                                    <img src="{{ asset(strpos($firstImage, 'storage/') === 0 ? $firstImage : 'storage/' . $firstImage) }}" alt="Post image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
+                                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                     </div>
+                                @endif
+                                <div class="absolute inset-0 bg-ink/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 text-white">
+                                    <p class="text-sm line-clamp-2">{{ $post->caption }}</p>
                                 </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-gray-500 italic">No portfolio items uploaded yet.</p>
-                    @endif
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-gray-500 italic">No posts uploaded yet.</p>
                 @endif
             </div>
 
