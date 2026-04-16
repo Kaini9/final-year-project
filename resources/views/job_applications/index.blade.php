@@ -51,14 +51,22 @@
                                     </span>
                                 @endif
 
-                                <!-- Withdraw -->
-                                @if($application->status === 'pending')
-                                    <form action="{{ route('job_applications.destroy', $application) }}" method="POST" onsubmit="return confirm('Withdraw this application?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-[10px] text-gray-400 font-bold uppercase tracking-widest hover:text-red-500 transition-colors underline">Withdraw</button>
-                                    </form>
-                                @endif
+                                <!-- CV Preview & Withdraw -->
+                                <div class="flex items-center gap-2">
+                                    @if($application->cv_path)
+                                        <a href="{{ route('job_applications.preview-cv', $application) }}" class="px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold uppercase tracking-widest rounded hover:bg-indigo-100 transition-colors" title="Preview CV">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        </a>
+                                    @endif
+
+                                    @if($application->status === 'pending')
+                                        <form action="{{ route('job_applications.destroy', $application) }}" method="POST" onsubmit="return confirm('Withdraw this application?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-[10px] text-gray-400 font-bold uppercase tracking-widest hover:text-red-500 transition-colors underline">Withdraw</button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @endforeach

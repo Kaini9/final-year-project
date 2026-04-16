@@ -10,44 +10,115 @@
                         <h1 class="font-display text-2xl uppercase tracking-widest text-ink">Messages</h1>
                     </div>
 
+                    <!-- Tabs -->
+                    <div class="flex border-b border-gray-100 shrink-0">
+                        <button onclick="toggleTab('inbox')" id="inbox-tab" 
+                            class="flex-1 py-3 text-sm font-bold uppercase tracking-widest border-b-2 border-ink text-ink cursor-pointer transition-colors">
+                            Inbox
+                            @if($regularConversations->count() > 0)
+                                <span class="inline-block ml-2 bg-ink text-white text-[10px] px-2 py-0.5 rounded-full">{{ $regularConversations->count() }}</span>
+                            @endif
+                        </button>
+                        <button onclick="toggleTab('spam')" id="spam-tab" 
+                            class="flex-1 py-3 text-sm font-bold uppercase tracking-widest border-b-2 border-transparent text-gray-400 cursor-pointer transition-colors hover:text-ink">
+                            Message Requests
+                            @if($spamConversations->count() > 0)
+                                <span class="inline-block ml-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{{ $spamConversations->count() }}</span>
+                            @endif
+                        </button>
+                    </div>
+
                     <!-- Conversation List -->
                     <div class="flex-grow overflow-y-auto">
-                        @if($conversations->count() > 0)
-                            @foreach($conversations as $convo)
-                                <a href="{{ route('messages.show', $convo->partner) }}" 
-                                   class="flex items-center gap-3 px-5 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors {{ $activeUser && $activeUser->id === $convo->partner->id ? 'bg-gray-100 border-l-4 border-l-ink' : '' }}">
-                                    
-                                    <div class="w-12 h-12 shrink-0 rounded-full overflow-hidden bg-gray-200 border relative">
-                                        @if($convo->partner->profile && $convo->partner->profile->avatar)
-                                            <img src="{{ asset('storage/' . $convo->partner->profile->avatar) }}" class="w-full h-full object-cover">
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center text-gray-500 font-display text-lg">{{ substr($convo->partner->name, 0, 1) }}</div>
-                                        @endif
-                                        @if($convo->unread_count > 0)
-                                            <span class="absolute -top-0.5 -right-0.5 block w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"></span>
-                                        @endif
-                                    </div>
-                                    
-                                    <div class="flex-grow min-w-0">
-                                        <div class="flex justify-between items-center">
-                                            <h3 class="font-bold text-sm text-ink truncate">{{ $convo->partner->name }}</h3>
-                                            <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest shrink-0 ml-2">{{ $convo->latest_message->created_at->shortAbsoluteDiffForHumans() }}</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 truncate mt-0.5 {{ $convo->unread_count > 0 ? 'font-bold text-ink' : '' }}">
-                                            @if($convo->latest_message->sender_id === Auth::id())
-                                                <span class="text-gray-400">You: </span>
+                        <!-- Inbox Tab -->
+                        <div id="inbox-content">
+                            @if($regularConversations->count() > 0)
+                                @foreach($regularConversations as $convo)
+                                    <a href="{{ route('messages.show', $convo->partner) }}" 
+                                       class="flex items-center gap-3 px-5 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors {{ $activeUser && $activeUser->id === $convo->partner->id ? 'bg-gray-100 border-l-4 border-l-ink' : '' }}">
+                                        
+                                        <div class="w-12 h-12 shrink-0 rounded-full overflow-hidden bg-gray-200 border relative">
+                                            @if($convo->partner->profile && $convo->partner->profile->avatar)
+                                                <img src="{{ asset('storage/' . $convo->partner->profile->avatar) }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="w-full h-full flex items-center justify-center text-gray-500 font-display text-lg">{{ substr($convo->partner->name, 0, 1) }}</div>
                                             @endif
-                                            {{ $convo->latest_message->body }}
-                                        </p>
+                                            @if($convo->unread_count > 0)
+                                                <span class="absolute -top-0.5 -right-0.5 block w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"></span>
+                                            @endif
+                                        </div>
+                                        
+                                        <div class="flex-grow min-w-0">
+                                            <div class="flex justify-between items-center">
+                                                <h3 class="font-bold text-sm text-ink truncate">{{ $convo->partner->name }}</h3>
+                                                <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest shrink-0 ml-2">{{ $convo->latest_message->created_at->shortAbsoluteDiffForHumans() }}</span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 truncate mt-0.5 {{ $convo->unread_count > 0 ? 'font-bold text-ink' : '' }}">
+                                                @if($convo->latest_message->sender_id === Auth::id())
+                                                    <span class="text-gray-400">You: </span>
+                                                @endif
+                                                {{ $convo->latest_message->body }}
+                                            </p>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            @else
+                                <div class="flex flex-col items-center justify-center h-48 p-8 text-center">
+                                    <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">No conversations yet</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Message Requests (Spam) Tab -->
+                        <div id="spam-content" class="hidden">
+                            @if($spamConversations->count() > 0)
+                                @foreach($spamConversations as $convo)
+                                    <div class="px-5 py-4 border-b border-gray-50 bg-orange-50/50 hover:bg-orange-50/80 transition-colors {{ $activeUser && $activeUser->id === $convo->partner->id ? 'bg-orange-100/50 border-l-4 border-l-orange-500' : '' }}">
+                                        <a href="{{ route('messages.show', $convo->partner) }}" 
+                                           class="flex items-center gap-3">
+                                            
+                                            <div class="w-12 h-12 shrink-0 rounded-full overflow-hidden bg-gray-200 border relative">
+                                                @if($convo->partner->profile && $convo->partner->profile->avatar)
+                                                    <img src="{{ asset('storage/' . $convo->partner->profile->avatar) }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <div class="w-full h-full flex items-center justify-center text-gray-500 font-display text-lg">{{ substr($convo->partner->name, 0, 1) }}</div>
+                                                @endif
+                                                @if($convo->unread_count > 0)
+                                                    <span class="absolute -top-0.5 -right-0.5 block w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"></span>
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="flex-grow min-w-0">
+                                                <div class="flex justify-between items-center">
+                                                    <h3 class="font-bold text-sm text-ink truncate">{{ $convo->partner->name }}</h3>
+                                                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest shrink-0 ml-2">{{ $convo->latest_message->created_at->shortAbsoluteDiffForHumans() }}</span>
+                                                </div>
+                                                <p class="text-xs text-gray-500 truncate mt-0.5 {{ $convo->unread_count > 0 ? 'font-bold text-ink' : '' }}">
+                                                    @if($convo->latest_message->sender_id === Auth::id())
+                                                        <span class="text-gray-400">You: </span>
+                                                    @endif
+                                                    {{ $convo->latest_message->body }}
+                                                </p>
+                                            </div>
+                                        </a>
+
+                                        <!-- Accept Message Request Button -->
+                                        <form action="{{ route('messages.accept-spam', $convo->partner) }}" method="POST" class="mt-2">
+                                            @csrf
+                                            <button type="submit" class="w-full bg-ink text-white text-xs font-bold py-1.5 rounded-lg hover:bg-opacity-90 transition-all">
+                                                ✓ Accept Message Request
+                                            </button>
+                                        </form>
                                     </div>
-                                </a>
-                            @endforeach
-                        @else
-                            <div class="flex flex-col items-center justify-center h-full p-8 text-center">
-                                <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">No conversations yet</p>
-                            </div>
-                        @endif
+                                @endforeach
+                            @else
+                                <div class="flex flex-col items-center justify-center h-48 p-8 text-center">
+                                    <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">No message requests</p>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
@@ -152,12 +223,35 @@
         </div>
     </div>
 
-    @if($activeUser)
-        <script>
+    <script>
+        function toggleTab(tab) {
+            // Hide all tabs
+            document.getElementById('inbox-content').classList.add('hidden');
+            document.getElementById('spam-content').classList.add('hidden');
+            
+            // Remove active styles from all tabs
+            document.getElementById('inbox-tab').classList.remove('border-ink', 'text-ink');
+            document.getElementById('inbox-tab').classList.add('border-transparent', 'text-gray-400');
+            document.getElementById('spam-tab').classList.remove('border-ink', 'text-ink');
+            document.getElementById('spam-tab').classList.add('border-transparent', 'text-gray-400');
+            
+            // Show selected tab
+            if(tab === 'inbox') {
+                document.getElementById('inbox-content').classList.remove('hidden');
+                document.getElementById('inbox-tab').classList.add('border-ink', 'text-ink');
+                document.getElementById('inbox-tab').classList.remove('border-transparent', 'text-gray-400');
+            } else {
+                document.getElementById('spam-content').classList.remove('hidden');
+                document.getElementById('spam-tab').classList.add('border-ink', 'text-ink');
+                document.getElementById('spam-tab').classList.remove('border-transparent', 'text-gray-400');
+            }
+        }
+
+        @if($activeUser)
             document.addEventListener('DOMContentLoaded', function() {
                 var container = document.getElementById('message-container');
                 container.scrollTop = container.scrollHeight;
             });
-        </script>
-    @endif
+        @endif
+    </script>
 </x-app-layout>

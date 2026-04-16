@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Feed
     Route::get('/dashboard', [\App\Http\Controllers\FeedController::class, 'index'])->name('dashboard');
+    Route::get('/feed/load-more', [\App\Http\Controllers\FeedController::class, 'loadMore'])->name('feed.load-more');
 
     // Global Search
     Route::get('/search', [\App\Http\Controllers\SearchController::class, 'index'])->name('search');
@@ -44,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Interactions
     Route::post('/posts/{post}/like', [\App\Http\Controllers\LikeController::class, 'toggle'])->name('posts.like');
     Route::post('/posts/{post}/comment', [\App\Http\Controllers\CommentController::class, 'store'])->name('posts.comment');
+    Route::delete('/comments/{comment}', [\App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
 
     // Job Marketplace
     Route::resource('jobs', \App\Http\Controllers\JobController::class);
@@ -54,11 +56,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/my-applications', [\App\Http\Controllers\JobApplicationController::class, 'myApplications'])->name('job_applications.mine');
     Route::patch('/applications/{jobApplication}', [\App\Http\Controllers\JobApplicationController::class, 'update'])->name('job_applications.update');
     Route::delete('/applications/{jobApplication}', [\App\Http\Controllers\JobApplicationController::class, 'destroy'])->name('job_applications.destroy');
+    Route::get('/applications/{jobApplication}/preview-cv', [\App\Http\Controllers\JobApplicationController::class, 'previewCv'])->name('job_applications.preview-cv');
 
     // Direct Messaging
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+    Route::post('/messages/{user}/accept-spam', [\App\Http\Controllers\MessageController::class, 'acceptSpam'])->name('messages.accept-spam');
 
     // Verifications
     Route::post('/verifications', [\App\Http\Controllers\VerificationController::class, 'store'])->name('verifications.store');

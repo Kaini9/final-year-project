@@ -9,8 +9,9 @@ class JobApplicationPolicy
 {
     public function create(User $user): bool
     {
-        // Anyone except a designer can apply
-        return !$user->hasRole('Designer') || $user->isAdmin();
+        // Any authenticated user can create a job application
+        // Role matching is validated in the view and controller
+        return true;
     }
 
     public function update(User $user, JobApplication $jobApplication): bool

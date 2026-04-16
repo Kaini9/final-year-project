@@ -24,7 +24,7 @@
                             <tr>
                                 <th scope="col" class="px-6 py-4">User</th>
                                 <th scope="col" class="px-6 py-4">Submitted Link</th>
-                                <th scope="col" class="px-6 py-4">ID / Document</th>
+                                <th scope="col" class="px-6 py-4">Passport Photo</th>
                                 <th scope="col" class="px-6 py-4">Status</th>
                                 <th scope="col" class="px-6 py-4">Submitted</th>
                                 <th scope="col" class="px-6 py-4 text-right">Actions</th>
@@ -59,12 +59,14 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         @if($verification->document_path)
-                                            <a href="{{ Storage::url($verification->document_path) }}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-bold uppercase tracking-widest transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-                                                View ID
-                                            </a>
+                                            <div class="group relative w-16 h-20 bg-gray-100 border border-gray-200 rounded cursor-pointer overflow-hidden">
+                                                <img src="{{ Storage::url($verification->document_path) }}" alt="Passport Photo" class="w-full h-full object-cover">
+                                                <a href="{{ Storage::url($verification->document_path) }}" target="_blank" class="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity" title="View Full">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                                                </a>
+                                            </div>
                                         @else
-                                            <span class="text-xs text-gray-400 italic">No document</span>
+                                            <span class="text-xs text-gray-400 italic">No photo</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4">

@@ -105,4 +105,24 @@ class JobApplicationController extends Controller
 
         return view('job_applications.index', compact('applications'));
     }
+
+    /**
+     * Preview CV in embedded viewer
+     */
+    public function previewCv(JobApplication $jobApplication)
+    {
+        // Authorization: Only the applicant or the job poster can view the CV
+        if (auth()->id() !== $jobApplication->user_id && auth()->id() !== $jobApplication->job->user_id) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!$jobApplication->cv_path) {
+            abort(404, 'CV not found');
+        }
+
+        $cvUrl = \Storage::url($jobApplication->cv_path);
+        $fileName = basename($jobApplication->cv_path);
+
+        return view('job_applications.preview-cv', compact('jobApplication', 'cvUrl', 'fileName'));
+    }
 }
