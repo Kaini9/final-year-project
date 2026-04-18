@@ -11,7 +11,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 class UserTest extends TestCase
 {
     use RefreshDatabase;
-
     public function test_is_admin_method()
     {
         $adminRole = Role::create(['name' => 'Admin', 'description' => 'Admin Role']);
@@ -23,7 +22,6 @@ class UserTest extends TestCase
         $this->assertTrue($admin->isAdmin());
         $this->assertFalse($user->isAdmin());
     }
-
     public function test_is_suspended_method()
     {
         $role = Role::create(['name' => 'User', 'description' => 'User Role']);

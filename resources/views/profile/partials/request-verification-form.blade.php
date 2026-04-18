@@ -13,7 +13,7 @@
         $verification = Auth::user()->verification;
     @endphp
 
-    @if($verification && $verification->is_active_badge)
+    @if($verification && $verification->is_active)
         <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-3">
             <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
@@ -23,7 +23,7 @@
                 <p class="text-[10px] text-emerald-600 mt-0.5">Your identity is verified. Renews {{ $verification->expires_at ? $verification->expires_at->format('M j, Y') : 'soon' }}.</p>
             </div>
         </div>
-    @elseif($verification && $verification->status === 'approved' && !$verification->is_active_badge)
+    @elseif($verification && $verification->status === 'approved' && !$verification->is_active)
         <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
