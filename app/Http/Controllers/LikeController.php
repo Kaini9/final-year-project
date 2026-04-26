@@ -31,6 +31,13 @@ class LikeController extends Controller
             }
         }
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'liked' => !$like,
+                'count' => $post->likes()->count()
+            ]);
+        }
+
         return back();
     }
 }

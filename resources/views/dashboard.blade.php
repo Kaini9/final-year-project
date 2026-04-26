@@ -117,7 +117,8 @@
                     <!-- Feed -->
                     <div class="space-y-12" id="posts-container">
                         @forelse($posts as $post)
-                            <div class="bg-white border border-gray-100 text-ink rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 post-item">
+                            <div class="bg-white border border-gray-100 text-ink rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 post-item"
+                                 x-data="{ liked: {{ $post->likes->contains('user_id', Auth::id()) ? 'true' : 'false' }}, count: {{ $post->likes->count() }} }">
                                 <!-- Post Header -->
                                 <div class="flex items-center justify-between p-5">
                                     <a href="{{ route('profile.show', $post->user) }}" class="flex items-center gap-3 group flex-grow">
@@ -221,24 +222,27 @@
                                 <!-- Post Actions & Caption -->
                                 <div class="p-5 space-y-4">
                                     <div class="flex items-center gap-6">
-                                        @php
-                                            $hasLiked = $post->likes->contains('user_id', Auth::id());
-                                        @endphp
-                                        <form action="{{ route('posts.like', $post) }}" method="POST">
+                                        <form action="{{ route('posts.like', $post) }}" method="POST"
+                                            @submit.prevent="
+                                                fetch($el.action, {
+                                                    method: 'POST',
+                                                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                                                }).then(res => res.json()).then(data => { liked = data.liked; count = data.count; })
+                                            ">
                                             @csrf
-                                            <button type="submit" class="group flex items-center gap-2 {{ $hasLiked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-400' }} transition-colors">
-                                                <svg class="w-8 h-8 transform group-hover:scale-110 transition-transform" fill="{{ $hasLiked ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <button type="submit" :class="liked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-400'" class="group flex items-center gap-2 transition-colors">
+                                                <svg class="w-8 h-8 transform group-hover:scale-110 transition-transform" :fill="liked ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                                 </svg>
-                                                <span class="font-bold text-sm tracking-widest text-gray-700">{{ $post->likes->count() }}</span>
+                                                <span class="font-bold text-sm tracking-widest text-gray-700" x-text="count"></span>
                                             </button>
                                         </form>
-                                        <div class="flex items-center gap-2 text-gray-500 cursor-pointer">
+                                        <a href="{{ route('posts.show', $post) }}" class="flex items-center gap-2 text-gray-500 hover:text-ink transition-colors cursor-pointer">
                                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                             </svg>
                                             <span class="font-bold text-sm tracking-widest">{{ $post->comments->count() }}</span>
-                                        </div>
+                                        </a>
                                     </div>
 
                                     @if(!empty($postImages) && $post->caption)
@@ -256,7 +260,7 @@
 
                                 <!-- Comments section -->
                                 @if($post->comments->count() > 0)
-                                    <div class="px-5 pb-4 space-y-3">
+                                    <div class="px-5 pb-4 space-y-3" x-ref="commentsList">
                                         @foreach($post->comments->take(3) as $comment)
                                             <div class="text-[13px] flex gap-2 leading-tight items-start group">
                                                 <div class="flex-grow">
@@ -286,7 +290,8 @@
                                 @endif
 
                                 <!-- Add Comment -->
-                                <form action="{{ route('posts.comment', $post) }}" method="POST" class="border-t border-gray-100 flex items-center bg-gray-50/50">
+                                <form action="{{ route('posts.comment', $post) }}" method="POST" class="border-t border-gray-100 flex items-center bg-gray-50/50"
+                                      @submit.prevent="window.submitCommentFeedAjax($el, $refs.commentsList)">
                                     @csrf
                                     <input type="text" name="body" placeholder="Add a comment..." required class="flex-grow border-0 focus:ring-0 text-sm py-4 px-5 bg-transparent placeholder:text-gray-400">
                                     <button type="submit" class="font-bold text-xs shadow-sm bg-white border border-gray-200 rounded-md py-1.5 px-3 mr-4 uppercase tracking-widest text-ink hover:text-indigo-600 transition-colors">Post</button>
@@ -449,9 +454,11 @@
             // Count likes and comments
             const likesCount = post.likes ? post.likes.length : 0;
             const commentsCount = post.comments ? post.comments.length : 0;
+            const hasLiked = post.likes ? post.likes.some(like => like.user_id === {{ Auth::id() }}) : false;
 
             return `
-                <div class="post-item bg-white border border-gray-100 text-ink rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="post-item bg-white border border-gray-100 text-ink rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"
+                     x-data="{ liked: ${hasLiked ? 'true' : 'false'}, count: ${likesCount} }">
                     <!-- Post Header -->
                     <div class="flex items-center justify-between p-5">
                         <a href="/u/${post.user ? post.user.id : '#'}" class="flex items-center gap-3 group flex-grow">
@@ -482,7 +489,7 @@
                     <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between text-[13px]">
                         <div class="flex items-center gap-1 text-gray-500">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path></svg>
-                            <span>${likesCount} likes</span>
+                            <span><span x-text="count"></span> likes</span>
                         </div>
                         <div class="flex items-center gap-4 text-gray-500">
                             <span>${commentsCount} comments</span>
@@ -491,10 +498,16 @@
 
                     <!-- Post Actions -->
                     <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-4">
-                        <form action="/posts/${post.id}/like" method="POST" class="flex-1">
-                            <button type="submit" class="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-ink font-semibold text-sm py-2 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                Like
+                        <form action="/posts/${post.id}/like" method="POST" class="flex-1"
+                              @submit.prevent="
+                                  fetch($el.action, {
+                                      method: 'POST',
+                                      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]') ? document.querySelector('meta[name=csrf-token]').content : '', 'Accept': 'application/json' }
+                                  }).then(res => res.json()).then(data => { liked = data.liked; count = data.count; })
+                              ">
+                            <button type="submit" class="w-full flex items-center justify-center gap-2 font-semibold text-sm py-2 transition-colors" :class="liked ? 'text-rose-500' : 'text-gray-600 hover:text-ink'">
+                                <svg class="w-5 h-5" :fill="liked ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                <span x-text="liked ? 'Liked' : 'Like'"></span>
                             </button>
                         </form>
                         <a href="/posts/${post.id}" class="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:text-ink font-semibold text-sm py-2 transition-colors">
@@ -517,6 +530,13 @@
                             <a href="/posts/${post.id}" class="text-[13px] text-gray-400 font-semibold hover:text-gray-600">View all ${commentsCount} comments →</a>
                         </div>
                     ` : ''}
+
+                    <!-- Add Comment -->
+                    <form action="/posts/${post.id}/comment" method="POST" class="border-t border-gray-100 flex items-center bg-gray-50/50"
+                          @submit.prevent="window.submitCommentFeedAjax($el, $refs.commentsList)">
+                        <input type="text" name="body" placeholder="Add a comment..." required class="flex-grow border-0 focus:ring-0 text-sm py-4 px-5 bg-transparent placeholder:text-gray-400">
+                        <button type="submit" class="font-bold text-xs shadow-sm bg-white border border-gray-200 rounded-md py-1.5 px-3 mr-4 uppercase tracking-widest text-ink hover:text-indigo-600 transition-colors">Post</button>
+                    </form>
                 </div>
             `;
         }
@@ -617,5 +637,44 @@
             // Setup Manual Click
             loadMoreBtn.addEventListener('click', loadMorePosts);
         });
+
+        // Global AJAX Comment Handler for the feed
+        window.submitCommentFeedAjax = function(form, commentsList) {
+            const formData = new FormData(form);
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const headers = { 'Accept': 'application/json' };
+            if (csrfMeta) headers['X-CSRF-TOKEN'] = csrfMeta.content;
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: headers
+            }).then(res => {
+                if (!res.ok) throw new Error('Network error');
+                return res.json();
+            }).then(data => {
+                form.reset();
+                let badge = data.is_verified 
+                    ? `<div class="ml-1 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-sm" title="Verified Member"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>` 
+                    : '';
+                let newHtml = `<div class="text-[13px] flex gap-2 leading-tight items-start group">
+                    <div class="flex-grow">
+                        <a href="${data.user_url}" class="font-bold hover:underline whitespace-nowrap text-gray-900 inline-flex items-center">
+                            ${data.user_name} ${badge}
+                        </a>
+                        <span class="text-gray-700 ml-1">${data.comment.body}</span>
+                    </div>
+                </div>`;
+                
+                if (commentsList) {
+                    commentsList.insertAdjacentHTML('beforeend', newHtml);
+                } else {
+                    form.insertAdjacentHTML('beforebegin', `<div class="px-5 pb-4 space-y-3" x-ref="commentsList">${newHtml}</div>`);
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Could not post comment.');
+            });
+        };
     </script>
 </x-app-layout>

@@ -8,7 +8,8 @@
             </a>
 
             <!-- Post Card -->
-            <div class="bg-white border border-gray-100 text-ink rounded-2xl overflow-hidden shadow-lg post-item">
+            <div class="bg-white border border-gray-100 text-ink rounded-2xl overflow-hidden shadow-lg post-item"
+                 x-data="{ liked: {{ $post->likes->contains('user_id', Auth::id()) ? 'true' : 'false' }}, count: {{ $post->likes->count() }} }">
                 <!-- Post Header -->
                 <div class="flex items-center justify-between p-5">
                     <a href="{{ route('profile.show', $post->user) }}" class="flex items-center gap-3 group flex-grow">
@@ -105,16 +106,19 @@
                 <!-- Post Actions & Caption -->
                 <div class="p-5 space-y-4">
                     <div class="flex items-center gap-6">
-                        @php
-                            $hasLiked = $post->likes->contains('user_id', Auth::id());
-                        @endphp
-                        <form action="{{ route('posts.like', $post) }}" method="POST" class="flex items-center gap-2">
+                        <form action="{{ route('posts.like', $post) }}" method="POST" class="flex items-center gap-2"
+                              @submit.prevent="
+                                  fetch($el.action, {
+                                      method: 'POST',
+                                      headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                                  }).then(res => res.json()).then(data => { liked = data.liked; count = data.count; })
+                              ">
                             @csrf
-                            <button type="submit" class="group flex items-center gap-2 {{ $hasLiked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-400' }} transition-colors">
-                                <svg class="w-8 h-8 transform group-hover:scale-110 transition-transform" fill="{{ $hasLiked ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <button type="submit" :class="liked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-400'" class="group flex items-center gap-2 transition-colors">
+                                <svg class="w-8 h-8 transform group-hover:scale-110 transition-transform" :fill="liked ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                 </svg>
-                                <span class="font-bold text-sm tracking-widest text-gray-700">{{ $post->likes->count() }}</span>
+                                <span class="font-bold text-sm tracking-widest text-gray-700" x-text="count"></span>
                             </button>
                         </form>
                         <div class="flex items-center gap-2 text-gray-500">
@@ -151,7 +155,8 @@
                     <h3 class="font-bold text-ink text-sm uppercase tracking-widest">{{ $post->comments->count() }} Comments</h3>
 
                     <!-- Add Comment Form -->
-                    <form action="{{ route('posts.comment', $post) }}" method="POST" class="flex gap-3 pb-4 border-b border-gray-100">
+                    <form action="{{ route('posts.comment', $post) }}" method="POST" class="flex gap-3 pb-4 border-b border-gray-100"
+                          @submit.prevent="window.submitCommentPostAjax($el, $refs.commentsList)">
                         @csrf
                         <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center font-display text-xs text-gray-400 shrink-0">
                             @if(Auth::user()->profile && Auth::user()->profile->avatar)
@@ -171,7 +176,7 @@
                     </form>
 
                     <!-- Comments List -->
-                    <div class="space-y-4">
+                    <div class="space-y-4" x-ref="commentsList">
                         @forelse($post->comments as $comment)
                             <div class="flex gap-3 group">
                                 <a href="{{ route('profile.show', $comment->user) }}" class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center font-display text-xs text-gray-400 shrink-0 hover:ring-2 hover:ring-gray-300 transition">
@@ -211,4 +216,56 @@
             </div>
         </div>
     </div>
+
+    <script>
+        window.submitCommentPostAjax = function(form, commentsList) {
+            const formData = new FormData(form);
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const headers = { 'Accept': 'application/json' };
+            if (csrfMeta) headers['X-CSRF-TOKEN'] = csrfMeta.content;
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: headers
+            }).then(res => {
+                if (!res.ok) throw new Error('Network error');
+                return res.json();
+            }).then(data => {
+                form.reset();
+                let badge = data.is_verified 
+                    ? `<div class="ml-1 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-sm" title="Verified Member"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>` 
+                    : '';
+                let avatarHtml = data.comment.user && data.comment.user.profile && data.comment.user.profile.avatar 
+                    ? `<img src="/storage/${data.comment.user.profile.avatar}" class="w-full h-full object-cover">`
+                    : data.user_name.charAt(0);
+                    
+                let newHtml = `<div class="flex gap-3 group">
+                    <a href="${data.user_url}" class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center font-display text-xs text-gray-400 shrink-0 hover:ring-2 hover:ring-gray-300 transition">
+                        ${avatarHtml}
+                    </a>
+                    <div class="flex-grow">
+                        <div class="bg-gray-50 rounded-lg px-3 py-2">
+                            <a href="${data.user_url}" class="font-bold text-sm text-ink hover:underline inline-flex items-center gap-1">
+                                ${data.user_name} ${badge}
+                            </a>
+                            <p class="text-sm text-gray-700 mt-1">${data.comment.body}</p>
+                        </div>
+                        <div class="flex items-center gap-3 mt-1 text-xs text-gray-500 font-semibold">
+                            <span>Just now</span>
+                        </div>
+                    </div>
+                </div>`;
+                
+                if (commentsList) {
+                    const noComments = commentsList.querySelector('.text-center');
+                    if (noComments) noComments.remove();
+                    commentsList.insertAdjacentHTML('afterbegin', newHtml);
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Could not post comment.');
+            });
+        };
+    </script>
 </x-app-layout>

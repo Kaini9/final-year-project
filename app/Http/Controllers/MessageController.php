@@ -53,7 +53,7 @@ class MessageController extends Controller
                 $conversations->push((object)[
                     'partner' => $partner,
                     'latest_message' => $msg,
-                    'is_spam' => $msg->is_spam,
+                    'is_spam' => $msg->is_spam && $msg->sender_id !== $userId,
                     'unread_count' => Message::where('sender_id', $partnerId)
                                             ->where('receiver_id', $userId)
                                             ->whereNull('read_at')
@@ -141,7 +141,34 @@ class MessageController extends Controller
         })->exists();
 
         // Check if sender and receiver follow each other
-        $isSpam = !$this->areFollowingEachOther(Auth::id(), $user->id);
+        $isMutual = $this->areFollowingEachOther(Auth::id(), $user->id);
+        
+        $alreadyAccepted = Message::where(function($q) use ($user) {
+            $q->where('sender_id', Auth::id())->where('receiver_id', $user->id);
+        })->orWhere(function($q) use ($user) {
+            $q->where('sender_id', $user->id)->where('receiver_id', Auth::id());
+        })->where('is_spam', false)->exists();
+
+        if (!$isMutual && !$alreadyAccepted && $hasHistory) {
+            $lastMessage = Message::where(function($q) use ($user) {
+                $q->where('sender_id', Auth::id())->where('receiver_id', $user->id);
+            })->orWhere(function($q) use ($user) {
+                $q->where('sender_id', $user->id)->where('receiver_id', Auth::id());
+            })->latest()->first();
+
+            if ($lastMessage && $lastMessage->receiver_id === Auth::id()) {
+                // Implicit accept: current user is replying to a spam request
+                Message::where(function($q) use ($user) {
+                    $q->where('sender_id', Auth::id())->where('receiver_id', $user->id);
+                })->orWhere(function($q) use ($user) {
+                    $q->where('sender_id', $user->id)->where('receiver_id', Auth::id());
+                })->update(['is_spam' => false]);
+                
+                $alreadyAccepted = true;
+            }
+        }
+
+        $isSpam = !$isMutual && !$alreadyAccepted;
 
         Message::create([
             'sender_id' => Auth::id(),

@@ -16,7 +16,7 @@ class CommentController extends Controller
             'body' => ['required', 'string', 'max:1000']
         ]);
 
-        $post->comments()->create([
+        $comment = $post->comments()->create([
             'user_id' => $request->user()->id,
             'body' => $request->body,
         ]);
@@ -30,6 +30,17 @@ class CommentController extends Controller
                 $request->user()->id,
                 $request->user()->name
             ));
+        }
+
+        if ($request->wantsJson()) {
+            $comment->load('user.profile', 'user.role');
+            return response()->json([
+                'comment' => $comment,
+                'count' => $post->comments()->count(),
+                'user_name' => $comment->user->name,
+                'user_url' => route('profile.show', $comment->user),
+                'is_verified' => $comment->user->is_verified,
+            ]);
         }
 
         return back();
