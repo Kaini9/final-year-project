@@ -160,20 +160,24 @@
                                         $postImages = [$post->image];
                                     }
                                     
-                                    // Ensure all paths are URL-ready
                                     $postImages = array_map(function($img) {
-                                        // If path doesn't start with 'storage/', prepend it
-                                        if (!empty($img) && strpos($img, 'storage/') !== 0) {
-                                            return 'storage/' . $img;
+                                        if (!empty($img)) {
+                                            if (strpos($img, 'http') === 0) {
+                                                return $img;
+                                            }
+                                            // If path doesn't start with 'storage/', prepend it
+                                            if (strpos($img, 'storage/') !== 0) {
+                                                return 'storage/' . $img;
+                                            }
                                         }
                                         return $img;
                                     }, $postImages);
                                 @endphp
                                 
                                 @if(!empty($postImages))
-                                    <div class="w-full bg-gray-100 border-y border-gray-100 relative" x-data="{ current: 0, images: {{ json_encode($postImages) }} }">
+                                    <div class="w-full bg-gray-100 border-y border-gray-100 relative" x-data="{ current: 0, images: {{ json_encode($postImages) }}, getImageUrl(img) { return img.indexOf('http') === 0 ? img : '{{ asset('') }}' + img; } }">
                                         <!-- Main Image -->
-                                        <img :src="'{{ asset('') }}' + images[current]" :alt="'Post image ' + (current + 1)" class="w-full h-auto object-cover max-h-[850px] transition-opacity duration-300" loading="lazy" onerror="this.src='{{ asset('images/placeholder.svg') }}'">
+                                        <img :src="getImageUrl(images[current])" :alt="'Post image ' + (current + 1)" class="w-full h-auto object-cover max-h-[850px] transition-opacity duration-300" loading="lazy" onerror="this.src='{{ asset('images/placeholder.svg') }}'">
                                         
                                         <!-- Image Counter -->
                                         <template x-if="images.length > 1">
@@ -393,32 +397,32 @@
             };
 
             // Construct image carousel HTML
-            const imagesHTML = postImages.length > 0 ? `
-                <div class="w-full bg-gray-100 border-y border-gray-100 relative carousel-container" data-images='${JSON.stringify(postImages)}'>
-                    <img src="${getImageUrl(postImages[0])}" alt="Post image" class="w-full h-auto object-cover max-h-[850px]" onerror="this.src='{{ asset('images/placeholder.svg') }}'">` : ''
-            // If only one image or no images, don't add carousel HTML here
-            if (postImages.length === 1) {
-                // Single image - no carousel controls needed, img tag already added above
-                imagesHTML = imagesHTML + `
-                </div>
-            `;
-            } else if (postImages.length > 1) {
-                // Multiple images - add carousel controls
-                imagesHTML = imagesHTML + `
-                    <div class="absolute top-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                        <span class="current-img">1</span> / <span>${postImages.length}</span>
-                    </div>
-                    <button type="button" class="prev-img absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-black flex items-center justify-center transition-all shadow-lg">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    </button>
-                    <button type="button" class="next-img absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-black flex items-center justify-center transition-all shadow-lg">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                        ${postImages.map((_, idx) => `<button type="button" class="dot-indicator w-2 h-2 rounded-full transition-all ${idx === 0 ? 'bg-white' : 'bg-white/50'}" data-idx="${idx}"></button>`).join('')}
-                    </div>
-                </div>
-            `;
+            let imagesHTML = '';
+            if (postImages.length > 0) {
+                imagesHTML = `
+                    <div class="w-full bg-gray-100 border-y border-gray-100 relative carousel-container" data-images='${JSON.stringify(postImages)}'>
+                        <img src="${getImageUrl(postImages[0])}" alt="Post image" class="w-full h-auto object-cover max-h-[850px]" onerror="this.src='{{ asset('images/placeholder.svg') }}'">
+                `;
+                
+                if (postImages.length > 1) {
+                    // Multiple images - add carousel controls
+                    imagesHTML += `
+                        <div class="absolute top-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                            <span class="current-img">1</span> / <span>${postImages.length}</span>
+                        </div>
+                        <button type="button" class="prev-img absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-black flex items-center justify-center transition-all shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button type="button" class="next-img absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-black flex items-center justify-center transition-all shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                            ${postImages.map((_, idx) => `<button type="button" class="dot-indicator w-2 h-2 rounded-full transition-all ${idx === 0 ? 'bg-white' : 'bg-white/50'}" data-idx="${idx}"></button>`).join('')}
+                        </div>
+                    `;
+                }
+                
+                imagesHTML += `</div>`;
             }
 
             // Build user info section
@@ -457,6 +461,15 @@
                     <!-- Post Images -->
                     ${imagesHTML}
 
+                    <!-- Post Caption/Content (Appears before interactions for caption-only) -->
+                    ${post.caption && postImages.length === 0 ? `
+                        <!-- Caption-only Post (Status Style) -->
+                        <div class="px-5 py-12 text-center border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white">
+                            <p class="text-2xl text-gray-800 font-light leading-relaxed mb-6 whitespace-pre-wrap break-words">${post.caption}</p>
+                            <p class="text-xs text-gray-400">by <span class="font-semibold text-gray-600">${post.user ? post.user.name : 'Unknown'}</span></p>
+                        </div>
+                    ` : ''}
+
                     <!-- Post Interactions -->
                     <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between text-[13px]">
                         <div class="flex items-center gap-1 text-gray-500">
@@ -482,20 +495,12 @@
                         </a>
                     </div>
 
-                    <!-- Post Caption -->
-                    ${post.caption ? `
-                        ${postImages.length === 0 ? `
-                            <!-- Caption-only Post (Status Style) -->
-                            <div class="px-5 py-6 text-center border-b border-gray-100 min-h-[200px] flex flex-col justify-center">
-                                <p class="text-2xl text-gray-800 font-normal leading-relaxed mb-4">${post.caption}</p>
-                                <p class="text-xs text-gray-400">by <span class="font-semibold">${post.user ? post.user.name : 'Unknown'}</span></p>
-                            </div>
-                        ` : `
-                            <!-- Caption with Images -->
-                            <div class="px-5 pt-3 pb-2">
-                                <p class="text-sm text-gray-800"><span class="font-bold">${post.user ? post.user.name : 'Unknown'}</span> ${post.caption}</p>
-                            </div>
-                        `}
+                    <!-- Post Caption (Appears after interactions for posts with images) -->
+                    ${post.caption && postImages.length > 0 ? `
+                        <!-- Caption with Images -->
+                        <div class="px-5 pt-4 pb-2">
+                            <p class="text-sm text-gray-800"><span class="font-bold">${post.user ? post.user.name : 'Unknown'}</span> ${post.caption}</p>
+                        </div>
                     ` : ''}
 
                     <!-- View Comments Link -->
