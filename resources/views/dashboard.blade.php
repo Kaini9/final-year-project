@@ -209,6 +209,18 @@
                                     </div>
                                 @endif
 
+                                @if(empty($postImages) && $post->caption)
+                                    <!-- Caption-only Post (Status Style) -->
+                                    <div class="px-5 py-12 text-center border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white">
+                                        <p class="text-2xl text-gray-800 font-light leading-relaxed mb-6 whitespace-pre-wrap break-words">{!! nl2br(e($post->caption)) !!}</p>
+                                        <p class="text-xs text-gray-400">by <span class="font-semibold text-gray-600">
+                                            <a href="{{ route('profile.show', $post->user) }}" class="hover:underline">
+                                                {{ $post->user->name }}
+                                            </a>
+                                        </span></p>
+                                    </div>
+                                @endif
+
                                 <!-- Post Actions & Caption -->
                                 <div class="p-5 space-y-4">
                                     <div class="flex items-center gap-6">
@@ -232,7 +244,7 @@
                                         </div>
                                     </div>
 
-                                    @if($post->caption)
+                                    @if(!empty($postImages) && $post->caption)
                                         <div class="text-sm mt-3 text-gray-800 leading-relaxed">
                                             <a href="{{ route('profile.show', $post->user) }}" class="font-bold hover:underline tracking-tight inline-flex items-center">
                                                 {{ $post->user->name }}
