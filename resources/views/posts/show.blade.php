@@ -51,9 +51,17 @@
                         $postImages = [$post->image];
                     }
                     
+                    // Only add 'storage/' prefix to local file paths, not Cloudinary URLs
                     $postImages = array_map(function($img) {
-                        if (!empty($img) && strpos($img, 'storage/') !== 0) {
-                            return 'storage/' . $img;
+                        if (!empty($img)) {
+                            // Check if it's a Cloudinary URL (starts with http)
+                            if (strpos($img, 'http') === 0) {
+                                return $img;
+                            }
+                            // Add storage prefix for local files
+                            if (strpos($img, 'storage/') !== 0) {
+                                return 'storage/' . $img;
+                            }
                         }
                         return $img;
                     }, $postImages);

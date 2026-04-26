@@ -10,9 +10,6 @@ use Carbon\Carbon;
 
 class OtpService
 {
-    /**
-     * Generate, store, and send an OTP to the given user.
-     */
     public function sendVerificationOtp(User $user)
     {
         // Check cooldown

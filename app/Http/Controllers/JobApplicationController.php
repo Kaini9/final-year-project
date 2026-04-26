@@ -13,6 +13,10 @@ class JobApplicationController extends Controller
     {
         $this->authorize('create', JobApplication::class);
 
+        if ($job->deadline && now()->startOfDay()->greaterThan($job->deadline)) {
+            return redirect()->route('jobs.show', $job)->with('error', 'The deadline for this opportunity has passed.');
+        }
+
         // Prevent duplicate applications
         if ($job->applications()->where('user_id', request()->user()->id)->exists()) {
             return redirect()->route('jobs.show', $job)->with('error', 'You have already applied for this opening.');
@@ -24,6 +28,10 @@ class JobApplicationController extends Controller
     public function store(Request $request, Job $job)
     {
         $this->authorize('create', JobApplication::class);
+
+        if ($job->deadline && now()->startOfDay()->greaterThan($job->deadline)) {
+            return redirect()->route('jobs.show', $job)->with('error', 'The deadline for this opportunity has passed.');
+        }
 
         // Prevent duplicate applications logically
         if ($job->applications()->where('user_id', $request->user()->id)->exists()) {

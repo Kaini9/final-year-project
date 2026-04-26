@@ -4,9 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Post;
+use App\Services\CloudinaryService;
 
 class PostController extends Controller
 {
+    protected $cloudinary;
+
+    public function __construct(CloudinaryService $cloudinary)
+    {
+        $this->cloudinary = $cloudinary;
+    }
+
     public function api(Request $request)
     {
         $page = $request->query('page', 1);
@@ -28,22 +36,33 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'images' => ['required', 'array', 'max:3'],
-            'images.*' => ['required', 'image', 'max:5120'], // 5MB max per image
+            'images' => ['nullable', 'array', 'max:3'],
+            'images.*' => ['nullable', 'image', 'max:5120'], // 5MB max per image
             'caption' => ['nullable', 'string', 'max:2200'],
         ]);
 
+        // Ensure at least caption or images are provided
+        if (empty($request->caption) && !$request->hasFile('images')) {
+            return back()->withErrors(['error' => 'Please provide a caption or upload images.']);
+        }
+
         $imagePaths = [];
+        $publicIds = [];
+
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('posts', 'public');
+            $uploadedFiles = $this->cloudinary->uploadMultiple($request->file('images'));
+            
+            foreach ($uploadedFiles as $uploadedFile) {
+                $imagePaths[] = $uploadedFile['url'];
+                $publicIds[] = $uploadedFile['public_id'];
             }
         }
 
         $post = new Post([
             'user_id' => $request->user()->id,
             'caption' => $request->caption,
-            'images' => $imagePaths, // Store as array
+            'images' => !empty($imagePaths) ? $imagePaths : null,
+            'image_public_ids' => !empty($publicIds) ? $publicIds : null,
         ]);
 
         $post->save();

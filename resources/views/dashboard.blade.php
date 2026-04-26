@@ -85,9 +85,9 @@
                                 <div class="relative overflow-hidden inline-block border border-gray-200 rounded-lg bg-white px-4 py-2 hover:bg-gray-50 transition-colors shadow-sm cursor-pointer group">
                                     <div class="flex items-center gap-2 text-sm font-semibold text-gray-600 group-hover:text-ink">
                                         <svg class="w-5 h-5 text-gray-400 group-hover:text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                        <span x-text="fileCount ? `${fileCount} image${fileCount > 1 ? 's' : ''} (max 3)` : 'Choose Images'"></span>
+                                        <span x-text="fileCount ? `${fileCount} image${fileCount > 1 ? 's' : ''} (max 3)` : 'Choose Images (Optional)'"></span>
                                     </div>
-                                    <input type="file" name="images[]" accept="image/*" multiple required x-ref="fileInput"
+                                    <input type="file" name="images[]" accept="image/*" multiple x-ref="fileInput"
                                         @change="
                                             const files = $event.target.files;
                                             fileCount = files.length;
@@ -102,6 +102,7 @@
                                 </div>
                                 <x-primary-button class="whitespace-nowrap w-full sm:w-auto justify-center rounded-lg px-6 py-3 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5">Post Original</x-primary-button>
                             </div>
+                            <x-input-error :messages="$errors->get('error')" class="mt-2" />
                             <x-input-error :messages="$errors->get('images')" class="mt-2" />
                             <x-input-error :messages="$errors->get('images.*')" class="mt-2" />
                             <x-input-error :messages="$errors->get('caption')" class="mt-2" />
@@ -349,10 +350,17 @@
                 postImages = [post.image];
             }
 
-            // Ensure all paths have 'storage/' prefix
+            // Only add 'storage/' prefix to local file paths, not Cloudinary URLs
             postImages = postImages.map(img => {
-                if (img && img.indexOf('storage/') !== 0) {
-                    return 'storage/' + img;
+                if (img) {
+                    // Check if it's a Cloudinary URL or other external URL (starts with http)
+                    if (img.indexOf('http') === 0) {
+                        return img;
+                    }
+                    // Add storage prefix for local files
+                    if (img.indexOf('storage/') !== 0) {
+                        return 'storage/' + img;
+                    }
                 }
                 return img;
             });

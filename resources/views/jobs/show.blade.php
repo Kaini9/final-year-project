@@ -17,10 +17,6 @@
                     <div class="flex-grow">
                         <div class="flex items-center gap-3 mb-4">
                             <span class="px-3 py-1 bg-ink text-white text-xs font-bold uppercase tracking-wider">{{ $job->role_required }}</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-600 border border-gray-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                                <span class="w-2 h-2 rounded-full {{ $job->status === 'active' ? 'bg-green-500' : 'bg-red-500' }}"></span>
-                                {{ $job->status }}
-                            </span>
                         </div>
                         
                         <h1 class="font-display text-4xl md:text-5xl uppercase tracking-widest text-ink mb-4 leading-tight">{{ $job->title }}</h1>
@@ -61,7 +57,7 @@
                                     Only {{ $job->role_required }}s can apply
                                 </div>
                             @else
-                                @if($job->status === 'active')
+                                @if($job->status === 'active' && (!$job->deadline || now()->startOfDay()->lte($job->deadline)))
                                     @if($job->applications()->where('user_id', Auth::id())->exists())
                                         <div class="p-4 bg-gray-100 border border-ink text-center text-xs text-ink uppercase tracking-widest font-semibold flex items-center justify-center gap-2">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
