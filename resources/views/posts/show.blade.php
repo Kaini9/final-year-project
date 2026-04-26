@@ -68,9 +68,9 @@
                 @endphp
                 
                 @if(!empty($postImages))
-                    <div class="w-full bg-gray-100 border-y border-gray-100 relative" x-data="{ current: 0, images: {{ json_encode($postImages) }} }">
+                    <div class="w-full bg-gray-100 border-y border-gray-100 relative" x-data="{ current: 0, images: {{ json_encode($postImages) }}, getImageUrl(img) { return img.indexOf('http') === 0 ? img : '{{ asset('') }}' + img; } }">
                         <!-- Main Image -->
-                        <img :src="'{{ asset('') }}' + images[current]" :alt="'Post image ' + (current + 1)" class="w-full h-auto object-cover max-h-[600px] transition-opacity duration-300" loading="lazy" onerror="this.src='{{ asset('images/placeholder.svg') }}'" />
+                        <img :src="getImageUrl(images[current])" :alt="'Post image ' + (current + 1)" class="w-full h-auto object-cover max-h-[600px] transition-opacity duration-300" loading="lazy" onerror="this.src='{{ asset('images/placeholder.svg') }}'" />
                         
                         <!-- Image Counter -->
                         <template x-if="images.length > 1">
@@ -126,15 +126,31 @@
                     </div>
 
                     @if($post->caption)
-                        <div class="text-sm mt-3 text-gray-800 leading-relaxed">
-                            <a href="{{ route('profile.show', $post->user) }}" class="font-bold hover:underline tracking-tight inline-flex items-center">
-                                {{ $post->user->name }}
-                                @if($post->user->is_verified)
-                                    <x-verified-badge />
-                                @endif
-                            </a>
-                            <span class="ml-1">{!! nl2br(e($post->caption)) !!}</span>
-                        </div>
+                        @if(empty($postImages))
+                            <!-- Caption-only Post (Status Style) -->
+                            <div class="text-center py-12 px-5">
+                                <p class="text-3xl text-gray-800 font-normal leading-relaxed mb-6">{{ $post->caption }}</p>
+                                <p class="text-xs text-gray-400">by <span class="font-semibold">
+                                    <a href="{{ route('profile.show', $post->user) }}" class="hover:underline">
+                                        {{ $post->user->name }}
+                                        @if($post->user->is_verified)
+                                            <x-verified-badge />
+                                        @endif
+                                    </a>
+                                </span></p>
+                            </div>
+                        @else
+                            <!-- Caption with Images -->
+                            <div class="text-sm mt-3 text-gray-800 leading-relaxed">
+                                <a href="{{ route('profile.show', $post->user) }}" class="font-bold hover:underline tracking-tight inline-flex items-center">
+                                    {{ $post->user->name }}
+                                    @if($post->user->is_verified)
+                                        <x-verified-badge />
+                                    @endif
+                                </a>
+                                <span class="ml-1">{!! nl2br(e($post->caption)) !!}</span>
+                            </div>
+                        @endif
                     @endif
                 </div>
 

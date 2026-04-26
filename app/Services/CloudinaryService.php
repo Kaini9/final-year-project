@@ -3,25 +3,22 @@
 namespace App\Services;
 
 use Cloudinary\Cloudinary;
-use Cloudinary\Api\Upload\UploadApi;
 use Illuminate\Http\UploadedFile;
 
 class CloudinaryService
 {
     protected $cloudinary;
-    protected $uploadApi;
 
     public function __construct()
     {
-        $this->cloudinary = new Cloudinary([
-            'cloud' => [
-                'cloud_name' => config('services.cloudinary.cloud_name'),
-                'api_key' => config('services.cloudinary.api_key'),
-                'api_secret' => config('services.cloudinary.api_secret'),
-            ]
-        ]);
+        $cloudinaryUrl = sprintf(
+            "cloudinary://%s:%s@%s",
+            config('services.cloudinary.api_key'),
+            config('services.cloudinary.api_secret'),
+            config('services.cloudinary.cloud_name')
+        );
         
-        $this->uploadApi = new UploadApi($this->cloudinary);
+        $this->cloudinary = new Cloudinary($cloudinaryUrl);
     }
 
     /**
@@ -34,7 +31,7 @@ class CloudinaryService
     public function upload(UploadedFile $file, string $folder = 'fashionconnect/posts'): array
     {
         try {
-            $result = $this->uploadApi->upload(
+            $result = $this->cloudinary->uploadApi()->upload(
                 $file->getRealPath(),
                 [
                     'folder' => $folder,
@@ -88,7 +85,7 @@ class CloudinaryService
     public function delete(string $publicId): bool
     {
         try {
-            $this->uploadApi->destroy($publicId);
+            $this->cloudinary->uploadApi()->destroy($publicId);
             return true;
         } catch (\Exception $e) {
             return false;
