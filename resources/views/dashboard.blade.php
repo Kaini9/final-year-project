@@ -52,7 +52,7 @@
                 <!-- CENTER: Main Feed -->
                 <div class="flex-grow max-w-2xl mx-auto space-y-10">
                     <!-- Upload Post Component -->
-                    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow" x-data="{ previews: [], fileCount: 0 }">
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow" x-data="{ previews: [], fileCount: 0, dt: new DataTransfer() }">
                         <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="mb-4">
@@ -74,7 +74,7 @@
                                 <template x-for="(preview, index) in previews" :key="index">
                                     <div class="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
                                         <img :src="preview" class="w-full h-32 object-cover" />
-                                        <button type="button" @click="previews.splice(index, 1); fileCount--;" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
+                                        <button type="button" @click="previews.splice(index, 1); dt.items.remove(index); $refs.fileInput.files = dt.files; fileCount--;" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </button>
                                     </div>
@@ -97,8 +97,10 @@
                                                 const reader = new FileReader();
                                                 reader.onload = (e) => { previews.push(e.target.result); };
                                                 reader.readAsDataURL(files[i]);
+                                                dt.items.add(files[i]);
                                                 newCount++;
                                             }
+                                            $refs.fileInput.files = dt.files;
                                             fileCount = previews.length;
                                         "
                                         class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
@@ -211,13 +213,8 @@
 
                                 @if(empty($postImages) && $post->caption)
                                     <!-- Caption-only Post (Status Style) -->
-                                    <div class="px-5 py-12 text-center border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white">
-                                        <p class="text-2xl text-gray-800 font-light leading-relaxed mb-6 whitespace-pre-wrap break-words">{!! nl2br(e($post->caption)) !!}</p>
-                                        <p class="text-xs text-gray-400">by <span class="font-semibold text-gray-600">
-                                            <a href="{{ route('profile.show', $post->user) }}" class="hover:underline">
-                                                {{ $post->user->name }}
-                                            </a>
-                                        </span></p>
+                                    <div class="px-5 py-6 border-b border-gray-100">
+                                        <p class="text-2xl text-gray-800 font-light leading-relaxed whitespace-pre-wrap break-words">{!! nl2br(e($post->caption)) !!}</p>
                                     </div>
                                 @endif
 
@@ -476,9 +473,8 @@
                     <!-- Post Caption/Content (Appears before interactions for caption-only) -->
                     ${post.caption && postImages.length === 0 ? `
                         <!-- Caption-only Post (Status Style) -->
-                        <div class="px-5 py-12 text-center border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white">
-                            <p class="text-2xl text-gray-800 font-light leading-relaxed mb-6 whitespace-pre-wrap break-words">${post.caption}</p>
-                            <p class="text-xs text-gray-400">by <span class="font-semibold text-gray-600">${post.user ? post.user.name : 'Unknown'}</span></p>
+                        <div class="px-5 py-6 border-b border-gray-100">
+                            <p class="text-2xl text-gray-800 font-light leading-relaxed whitespace-pre-wrap break-words">${post.caption}</p>
                         </div>
                     ` : ''}
 

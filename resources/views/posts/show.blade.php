@@ -128,16 +128,8 @@
                     @if($post->caption)
                         @if(empty($postImages))
                             <!-- Caption-only Post (Status Style) -->
-                            <div class="text-center py-12 px-5">
-                                <p class="text-3xl text-gray-800 font-normal leading-relaxed mb-6">{{ $post->caption }}</p>
-                                <p class="text-xs text-gray-400">by <span class="font-semibold">
-                                    <a href="{{ route('profile.show', $post->user) }}" class="hover:underline">
-                                        {{ $post->user->name }}
-                                        @if($post->user->is_verified)
-                                            <x-verified-badge />
-                                        @endif
-                                    </a>
-                                </span></p>
+                            <div class="px-5 py-6 border-t border-gray-100">
+                                <p class="text-2xl text-gray-800 font-light leading-relaxed whitespace-pre-wrap break-words">{!! nl2br(e($post->caption)) !!}</p>
                             </div>
                         @else
                             <!-- Caption with Images -->
